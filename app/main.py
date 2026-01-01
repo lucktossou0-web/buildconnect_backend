@@ -11,11 +11,13 @@ app = FastAPI(title="BuildConnect API", version="1.0.0")
 # CORS - Configuration robuste
 app.add_middleware(
     CORSMiddleware,
-    # On autorise les ports classiques de Vite (5173) et React (3000)
-    allow_origins=["http://localhost:3000",
-                   "http://localhost:5173",
-                   "https://buildconnect-nine.vercel.app",
-                   "https://buildconnect-ouflbhuft-chances-projects-6fa297e1.vercel.app"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://buildconnect-nine.vercel.app"
+    ],
+    # CETTE LIGNE autorise toutes tes URL de test Vercel d'un coup :
+    allow_origin_regex=r"https://buildconnect-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
