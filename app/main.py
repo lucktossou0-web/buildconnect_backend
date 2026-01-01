@@ -14,7 +14,8 @@ app.add_middleware(
     # On autorise les ports classiques de Vite (5173) et React (3000)
     allow_origins=["http://localhost:3000",
                    "http://localhost:5173",
-                   "https://buildconnect-nine.vercel.app"],
+                   "https://buildconnect-nine.vercel.app",
+                   "https://buildconnect-ouflbhuft-chances-projects-6fa297e1.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
