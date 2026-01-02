@@ -16,7 +16,6 @@ app.add_middleware(
         "http://localhost:5173",
         "https://buildconnect-nine.vercel.app"
     ],
-    # CETTE LIGNE autorise toutes tes URL de test Vercel d'un coup :
     allow_origin_regex=r"https://buildconnect-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
