@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.session import Base
 import enum
+from datetime import datetime
 
 class UserRole(str, enum.Enum):
     CLIENT = "client"
@@ -17,13 +18,16 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False)
     city = Column(String, nullable=False)
-    phone = Column(String, nullable=True) # Ajout téléphone
+    phone = Column(String, nullable=True)
 
-    # Statuts spéciaux
+    # --- STATUTS ---
     is_admin = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True) # False = Banni
+    is_active = Column(Boolean, default=True) # Bannissement
+    is_subscribed = Column(Boolean, default=False) # Paiement validé
+    subscription_end = Column(DateTime, nullable=True)
+    has_pending_payment = Column(Boolean, default=False)
 
-    # Profil public
+    # --- PROFIL ---
     specialty = Column(String, nullable=True)
     shop_name = Column(String, nullable=True)
     category = Column(String, nullable=True)
@@ -33,10 +37,20 @@ class User(Base):
     bio = Column(Text, nullable=True)
     cv_url = Column(String, nullable=True)
 
-    # Relations
+    # --- RELATIONS ---
     sent_messages = relationship("Message", foreign_keys="Message.sender_id", back_populates="sender")
     received_messages = relationship("Message", foreign_keys="Message.receiver_id", back_populates="receiver")
     projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="user")
+
+class Payment(Base):
+    __tablename__ = "payments"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    screenshot_url = Column(String, nullable=False)
+    status = Column(String, default="pending")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user = relationship("User", back_populates="payments")
 
 class Project(Base):
     __tablename__ = "projects"

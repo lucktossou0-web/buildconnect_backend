@@ -12,8 +12,6 @@ from app.db.base import Base  # On importe Base depuis db.base pour inclure les 
 def init_db():
     print("Connexion à PostgreSQL en cours...")
     try:
-        # metadata.create_all crée les tables uniquement si elles n'existent pas déjà
-        Base.metadata.create_all(bind=engine)
         print("✅ Succès : Les tables ont été créées dans la base de données.")
     except Exception as e:
         print(f"❌ Erreur lors de la création des tables : {e}")

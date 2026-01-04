@@ -1,7 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import engine, Base
+from fastapi.staticfiles import StaticFiles
 from app.api.v1.endpoints import auth, feed, messages, users # 1. Ajout de users
+import os
+
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
 # Création automatique des tables
 Base.metadata.create_all(bind=engine)
@@ -21,8 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# Inclusion des routes avec le préfixe /v1 pour correspondre au Frontend
+# Inclusion des routes  /v1 pour correspondre au Frontend
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(feed.router, prefix="/api/v1/feed", tags=["Feed"])
 app.include_router(messages.router, prefix="/api/v1/messages", tags=["Messages"])

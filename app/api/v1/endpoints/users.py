@@ -4,11 +4,12 @@ from app.db.session import get_db
 from app.models import models
 from app.schemas import schemas
 from app.core.security import get_current_user
+from datetime import datetime, timedelta
 from typing import List
 
 router = APIRouter()
 
-# --- ROUTES UTILISATEURS STANDARDS ---
+# --- GESTION DU PROFIL ---
 
 @router.get("/me", response_model=schemas.UserOut)
 def read_user_me(current_user: models.User = Depends(get_current_user)):
@@ -27,15 +28,14 @@ def update_user_me(
         db: Session = Depends(get_db),
         current_user: models.User = Depends(get_current_user)
 ):
-    # Sécurité : Un client ne peut pas modifier certains champs complexes si tu le décides
-    # Ici on permet la bio/phone/city pour tout le monde
     for var, value in user_update.dict(exclude_unset=True).items():
         setattr(current_user, var, value)
-
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
     return current_user
+
+# --- RÉALISATIONS ---
 
 @router.post("/me/projects", response_model=schemas.ProjectOut)
 def add_project(
@@ -43,40 +43,74 @@ def add_project(
         db: Session = Depends(get_db),
         current_user: models.User = Depends(get_current_user)
 ):
-    # RÉSERVÉ AUX PROS ET FOURNISSEURS
     if current_user.role == models.UserRole.CLIENT:
-        raise HTTPException(status_code=403, detail="Les clients ne peuvent pas ajouter de réalisations")
-
+        raise HTTPException(status_code=403, detail="Interdit aux clients")
     new_project = models.Project(**project_in.dict(), user_id=current_user.id)
     db.add(new_project)
     db.commit()
     db.refresh(new_project)
     return new_project
 
-# --- ROUTES ADMINISTRATION ---
+# --- MODÈLE ÉCONOMIQUE : PAIEMENTS ---
+
+@router.post("/me/pay", response_model=schemas.PaymentOut)
+def submit_payment_proof(
+        payment_in: schemas.PaymentCreate,
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(get_current_user)
+):
+    new_pay = models.Payment(
+        user_id=current_user.id,
+        screenshot_url=payment_in.screenshot_url,
+        status="pending"
+    )
+    current_user.has_pending_payment = True
+    db.add(new_pay)
+    db.commit()
+    db.refresh(new_pay)
+    return new_pay
+
+# --- ADMINISTRATION ---
 
 @router.get("/admin/all", response_model=List[schemas.UserOut])
-def get_all_users_admin(
-        db: Session = Depends(get_db),
-        current_user: models.User = Depends(get_current_user)
-):
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Réservé aux administrateurs")
+def admin_get_all_users(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user.is_admin: raise HTTPException(status_code=403)
     return db.query(models.User).all()
 
-@router.post("/admin/toggle-status/{user_id}")
-def toggle_user_active_status(
-        user_id: int,
-        db: Session = Depends(get_db),
-        current_user: models.User = Depends(get_current_user)
-):
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Action interdite")
+@router.get("/admin/payments", response_model=List[schemas.PaymentOut])
+def admin_get_pending_payments(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user.is_admin: raise HTTPException(status_code=403)
+    return db.query(models.Payment).filter(models.Payment.status == "pending").all()
 
-    target_user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not target_user:
-        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+@router.post("/admin/payments/{payment_id}/approve")
+def admin_approve_payment(payment_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user.is_admin: raise HTTPException(status_code=403)
 
-    target_user.is_active = not target_user.is_active
+    pay = db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+    user = db.query(models.User).filter(models.User.id == pay.user_id).first()
+
+    pay.status = "approved"
+    user.is_subscribed = True
+    user.has_pending_payment = False
+
+    # Calcul de la nouvelle date de fin (+30 jours)
+    start_date = user.subscription_end if (user.subscription_end and user.subscription_end > datetime.now()) else datetime.now()
+    user.subscription_end = start_date + timedelta(days=30)
+
+    # Notification automatique par message interne
+    notif = models.Message(
+        sender_id=current_user.id,
+        receiver_id=user.id,
+        content=f"NOTIF : Votre paiement de 500 FCFA a été validé. Votre profil est actif jusqu'au {user.subscription_end.strftime('%d/%m/%Y')}."
+    )
+    db.add(notif)
     db.commit()
-    return {"status": "success", "is_active": target_user.is_active}
+    return {"status": "success"}
+
+@router.post("/admin/toggle-status/{user_id}")
+def admin_toggle_user_active(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user.is_admin: raise HTTPException(status_code=403)
+    target = db.query(models.User).filter(models.User.id == user_id).first()
+    target.is_active = not target.is_active
+    db.commit()
+    return {"is_active": target.is_active}

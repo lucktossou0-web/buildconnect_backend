@@ -18,6 +18,18 @@ class ProjectOut(ProjectBase):
     created_at: datetime
     class Config: from_attributes = True
 
+# --- PAIEMENTS ---
+class PaymentCreate(BaseModel):
+    screenshot_url: str
+
+class PaymentOut(BaseModel):
+    id: int
+    user_id: int
+    screenshot_url: str
+    status: str
+    created_at: datetime
+    class Config: from_attributes = True
+
 # --- UTILISATEURS ---
 class UserBase(BaseModel):
     username: str
@@ -31,11 +43,12 @@ class UserCreate(UserBase):
     specialty: Optional[str] = None
     shop_name: Optional[str] = None
 
-class UserUpdate(BaseModel): # Dédié à la mise à jour profil
+class UserUpdate(BaseModel):
     bio: Optional[str] = None
     cv_url: Optional[str] = None
     phone: Optional[str] = None
     city: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserLogin(BaseModel):
     username: str
@@ -53,6 +66,9 @@ class UserOut(UserBase):
     cv_url: Optional[str]
     is_admin: bool
     is_active: bool
+    is_subscribed: bool
+    subscription_end: Optional[datetime]
+    has_pending_payment: bool
     projects: List[ProjectOut] = []
     class Config: from_attributes = True
 

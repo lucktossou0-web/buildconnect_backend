@@ -8,10 +8,10 @@ class Settings:
     PROJECT_NAME: str = "BuildConnect"
     PROJECT_VERSION: str = "1.0.0"
 
-    # 1. On tente d'abord de récupérer l'URL complète (donnée par Render)
+    #récupérer l'URL complète (donnée par Render)
     DATABASE_URL = os.getenv("DATABASE_URL")
 
-    # 2. Si DATABASE_URL n'existe pas, on la construit (cas du local)
+    # 2. Si DATABASE_URL n'existe pas, on la construit (local)
     if not DATABASE_URL:
         POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
         POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
@@ -20,8 +20,6 @@ class Settings:
         POSTGRES_DB = os.getenv("POSTGRES_DB", "buildconnect")
         DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
-    # 3. FIX CRUCIAL POUR RENDER :
-    # SQLAlchemy exige "postgresql://" mais Render donne souvent "postgres://"
     if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 

@@ -22,7 +22,7 @@ def send_message(msg_in: schemas.MessageCreate, db: Session = Depends(get_db), c
     db.refresh(new_msg)
     return new_msg
 
-# Route pour l'inbox (liste des gens avec qui on parle)
+# Route pour l'inbox
 @router.get("/inbox", response_model=List[schemas.UserOut])
 def get_inbox(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     sent = db.query(models.Message.receiver_id).filter(models.Message.sender_id == current_user.id)

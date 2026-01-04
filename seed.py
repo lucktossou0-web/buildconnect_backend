@@ -1,20 +1,22 @@
-# buildconnect_backend/seed.py
 import sys
 import os
+from datetime import datetime, timedelta
 
+# Permet d'importer le module 'app'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from app.db.session import SessionLocal
 from app.models import models
 from app.core.security import get_password_hash
 
-
 def run_seed():
     db = SessionLocal()
-    print("Nettoyage de la base...")
-    db.query(models.Message).delete()
-    db.query(models.User).delete()
+    print("🚀 Démarrage du Smart Seed BuildConnect...")
 
-    print("Création des profils avec photos professionnelles BTP...")
+    # On ne supprime que les tables temporaires si besoin,
+    # mais on ne touche SURTOUT PAS à models.User.delete()
+
+    expiry = datetime.now() + timedelta(days=365) # 1 an pour être tranquille en test
 
     users_data = [
         {
@@ -22,110 +24,115 @@ def run_seed():
             "role": models.UserRole.PRESTATAIRE,
             "city": "Cotonou",
             "specialty": "Architecture & Design",
-            "category": "Architecture",
-            "description": "Expert en plans 3D et suivi de chantier pour villas de luxe.",
-            "avatar_url": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1000&auto=format&fit=crop",
-            # Plan architcture
-            "rating": 4.9
+            "description": "Plans de villas modernes et suivi de chantier professionnel.",
+            "avatar_url": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1000&auto=format&fit=crop"
         },
         {
             "username": "sommet_quinc",
             "role": models.UserRole.FOURNISSEUR,
             "city": "Porto-Novo",
             "shop_name": "Quincaillerie Le Sommet",
-            "category": "Matériaux",
-            "description": "Vente de fer à béton, ciment et outillage professionnel.",
-            "avatar_url": "https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?q=80&w=1000&auto=format&fit=crop",
-            # Outils quincaillerie
-            "rating": 4.7
+            "description": "Fer à béton, ciment Lafarge et outillage lourd.",
+            "avatar_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1000&auto=format&fit=crop"
         },
         {
             "username": "benin_carreaux",
             "role": models.UserRole.FOURNISSEUR,
             "city": "Cotonou",
-            "shop_name": "Bénin Carrelage",
-            "category": "Revêtements",
-            "description": "Showroom de carreaux marbrés et porcelaine importée.",
-            "avatar_url": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=1000&auto=format&fit=crop",
-            # Expo carrelage
-            "rating": 4.8
+            "shop_name": "Showroom Carrelage",
+            "description": "Importateur de marbre et grès cérame haute qualité.",
+            "avatar_url": "https://images.unsplash.com/photo-1516156008625-3a9d6067fab5?q=80&w=1000&auto=format&fit=crop"
         },
         {
             "username": "moussa_macon",
             "role": models.UserRole.PRESTATAIRE,
             "city": "Abomey-Calavi",
             "specialty": "Gros Oeuvre",
-            "category": "Maçonnerie",
-            "description": "Équipe spécialisée dans le coffrage et l'élévation de murs.",
-            "avatar_url": "https://images.unsplash.com/photo-1541888946425-d81bb19480c5?q=80&w=1000&auto=format&fit=crop",
-            # Mur de briques
-            "rating": 4.5
+            "description": "Expert en fondations, dallage et élévation de murs.",
+            "avatar_url": "https://images.unsplash.com/photo-1541888946425-d81bb19480c5?q=80&w=1000&auto=format&fit=crop"
         },
         {
-            "username": "lumiere_ets",
+            "username": "ets_lumiere",
             "role": models.UserRole.PRESTATAIRE,
             "city": "Parakou",
             "specialty": "Électricité",
-            "category": "Installation",
-            "description": "Tableaux électriques complexes et domotique.",
-            "avatar_url": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1000&auto=format&fit=crop",
-            # Câbles électriques
-            "rating": 4.6
+            "description": "Installations électriques industrielles et domotique.",
+            "avatar_url": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1000&auto=format&fit=crop"
         },
         {
-            "username": "sebastien_plomb",
+            "username": "plomberie_benin",
             "role": models.UserRole.PRESTATAIRE,
             "city": "Ouidah",
-            "specialty": "Plomberie",
-            "category": "Sanitaire",
-            "description": "Installation de tuyauterie et équipements de salle de bain.",
-            "avatar_url": "https://images.unsplash.com/photo-1585704032915-c3400ca1f963?q=80&w=1000&auto=format&fit=crop",
-            # Tuyaux cuivre
-            "rating": 4.7
+            "specialty": "Sanitaire & Plomberie",
+            "description": "Dépannage 24/7 et installation de tuyauterie cuivre/PPR.",
+            "avatar_url": "https://images.unsplash.com/photo-1585704032915-c3400ca1f963?q=80&w=1000&auto=format&fit=crop"
         },
         {
             "username": "bois_du_nord",
             "role": models.UserRole.FOURNISSEUR,
             "city": "Djougou",
-            "shop_name": "Bois du Nord",
-            "category": "Menuiserie",
-            "description": "Charpente, bois rouge et teck de première qualité.",
-            "avatar_url": "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1000&auto=format&fit=crop",
-            # Stock de bois
-            "rating": 4.4
+            "shop_name": "Menuiserie Bois Nord",
+            "description": "Bois de charpente, contreplaqué et teck local.",
+            "avatar_url": "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1000&auto=format&fit=crop"
         },
         {
             "username": "elite_peinture",
             "role": models.UserRole.PRESTATAIRE,
             "city": "Cotonou",
-            "specialty": "Finition",
-            "category": "Peinture",
-            "description": "Application de peintures décoratives et enduits lisses.",
-            "avatar_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=1000&auto=format&fit=crop",
-            # Pinceaux et peinture
-            "rating": 5.0
+            "specialty": "Finition & Peinture",
+            "description": "Peinture décorative, staff et enduits lisses.",
+            "avatar_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=1000&auto=format&fit=crop"
         }
     ]
 
     for u in users_data:
-        new_user = models.User(
-            username=u["username"],
-            email=f"{u['username']}@build.bj",
-            hashed_password=get_password_hash("password123"),
-            role=u["role"],
-            city=u["city"],
-            specialty=u.get("specialty"),
-            shop_name=u.get("shop_name"),
-            category=u["category"],
-            description=u["description"],
-            avatar_url=u["avatar_url"],
-            rating=u["rating"]
+        # ON VÉRIFIE SI L'UTILISATEUR EXISTE DÉJÀ
+        existing_user = db.query(models.User).filter(models.User.username == u["username"]).first()
+
+        if not existing_user:
+            print(f"➕ Création de l'expert : {u['username']}")
+            new_user = models.User(
+                username=u["username"],
+                email=f"{u['username']}@buildconnect.bj",
+                hashed_password=get_password_hash("password123"),
+                role=u["role"],
+                city=u["city"],
+                specialty=u.get("specialty"),
+                shop_name=u.get("shop_name"),
+                category=u.get("specialty") or "Matériaux",
+                avatar_url=u["avatar_url"],
+                is_subscribed=True, # Mock data toujours abonnée
+                subscription_end=expiry,
+                is_active=True,
+                is_admin=False
+            )
+            db.add(new_user)
+        else:
+            # OPTIONNEL : Mettre à jour les infos si elles ont changé (photo, etc.)
+            print(f"🔄 Mise à jour de l'expert : {u['username']}")
+            existing_user.avatar_url = u["avatar_url"]
+            existing_user.is_subscribed = True
+            existing_user.subscription_end = expiry
+
+    # GESTION DU COMPTE ADMIN PAR DÉFAUT
+    default_admin = db.query(models.User).filter(models.User.username == "admin").first()
+    if not default_admin:
+        print("➕ Création du compte admin système (admin/admin123)")
+        admin = models.User(
+            username="admin",
+            email="admin@buildconnect.bj",
+            hashed_password=get_password_hash("admin123"),
+            role=models.UserRole.PRESTATAIRE,
+            city="Cotonou",
+            is_admin=True,
+            is_active=True,
+            is_subscribed=True,
+            subscription_end=expiry
         )
-        db.add(new_user)
+        db.add(admin)
 
     db.commit()
-    print("✅ Seed terminé ! Ton application ressemble maintenant à une vraie plateforme BTP.")
-
+    print("\n✅ Seed terminé ! Tes comptes personnels sont préservés et les données de test sont à jour.")
 
 if __name__ == "__main__":
     run_seed()

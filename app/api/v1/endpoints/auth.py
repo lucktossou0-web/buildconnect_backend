@@ -5,7 +5,6 @@ from app.models import models
 from app.schemas import schemas
 from app.core import security
 
-# --- INITIALISATION DU ROUTER (Ligne manquante corrigée) ---
 router = APIRouter()
 
 @router.post("/register", response_model=schemas.Token)
@@ -18,7 +17,7 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     if db.query(models.User).filter(models.User.username == user_in.username).first():
         raise HTTPException(status_code=400, detail="Ce pseudo est déjà pris")
 
-    # 3. Préparation des données (logique de nettoyage selon le rôle)
+    # 3. Préparation des données
     user_args = {
         "username": user_in.username,
         "email": user_in.email,
